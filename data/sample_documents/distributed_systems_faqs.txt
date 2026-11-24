@@ -1,0 +1,16 @@
+Distributed Vector Search & RAG Architecture FAQs
+
+Q: What is the recommended chunk size and chunk overlap for standard technical documentation?
+A: In our architecture, the baseline standard is a chunk size of 500 to 800 characters with an overlap of 100 characters using RecursiveCharacterTextSplitter. This preserves context continuity across sentence boundaries without causing excessive token redundancy in the LLM context window.
+
+Q: How does the system mitigate hallucination during retrieval failures?
+A: When similarity scores for retrieved chunks fall below the configured threshold (e.g., 0.25), or when no relevant documents are found, the system prompt strictly forces the LLM to refuse speculative answering and reply: "Based on the provided documents, I do not have enough information to answer this question."
+
+Q: What is the maximum allowed context window size?
+A: The system restricts input prompt context to a maximum of 4,000 tokens per single query turn to maintain fast response latency, reduce token consumption costs, and prevent the "Lost in the Middle" degradation effect in long context windows.
+
+Q: How does the RAG pipeline handle multi-turn conversational follow-ups?
+A: Multi-turn queries are passed through a contextual query reformulator. When a user asks "What are its limitations?", the reformulator combines the conversation history to reconstruct a standalone query: "What are the limitations of [Topic]?", which is then used to query the vector database.
+
+Q: What is the disaster recovery and backup policy for the vector database?
+A: Vector database indexes are snapshotted every 6 hours and replicated across two availability zones with automated failover in under 30 seconds.

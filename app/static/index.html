@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise RAG System | LangChain + FastAPI</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Markdown Renderer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">
+          <h1>Enterprise RAG</h1>
+          <span class="badge">LangChain + FastAPI</span>
+        </div>
+      </div>
+
+      <!-- System Health Card -->
+      <div class="system-card">
+        <h3>System Status</h3>
+        <div class="status-indicator">
+          <span class="dot healthy"></span>
+          <span id="system-status-text">Checking health...</span>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <span class="label">LLM Provider</span>
+            <span class="val" id="val-llm-provider">-</span>
+          </div>
+          <div class="metric-item">
+            <span class="label">Vector DB</span>
+            <span class="val" id="val-vectordb">-</span>
+          </div>
+          <div class="metric-item">
+            <span class="label">Indexed Chunks</span>
+            <span class="val highlight" id="val-chunks-count">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="label">Embedding</span>
+            <span class="val" id="val-embedding">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h3>Knowledge Base</h3>
+        <button id="btn-open-upload-pdf" class="btn primary">
+          <span>📄</span> Upload PDF / Document
+        </button>
+        <button id="btn-seed-samples" class="btn secondary">
+          <span>📚</span> Seed Sample Docs
+        </button>
+        <button id="btn-open-ingest" class="btn secondary">
+          <span>✍️</span> Paste Custom Text
+        </button>
+        <button id="btn-clear-index" class="btn danger">
+          <span>🗑️</span> Reset Knowledge Base
+        </button>
+      </div>
+
+      <!-- Source Documents List -->
+      <div class="sources-panel">
+        <h3>Indexed Sources (<span id="source-count">0</span>)</h3>
+        <ul id="source-list" class="source-list">
+          <li class="empty-hint">No documents indexed yet</li>
+        </ul>
+      </div>
+
+      <div class="footer-note">
+        <a href="/docs" target="_blank" class="api-link">Interactive Swagger Docs ↗</a>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-container">
+      <header class="chat-header">
+        <div class="chat-title">
+          <h2>Retrieval-Augmented Generation Chat</h2>
+          <p>Grounding generative answers with verified source citations & conversational memory</p>
+        </div>
+        <div class="header-controls">
+          <label class="toggle-control" title="Stream tokens character-by-character">
+            <input type="checkbox" id="stream-toggle" checked>
+            <span class="slider"></span>
+            <span class="toggle-label">Real-time Stream</span>
+          </label>
+        </div>
+      </header>
+
+      <!-- Message Thread -->
+      <div class="chat-messages" id="chat-messages">
+        <div class="message assistant welcome-card">
+          <div class="avatar">🤖</div>
+          <div class="content">
+            <h3>Welcome to Enterprise RAG!</h3>
+            <p>This system indexes enterprise documents into vector representations and performs contextual semantic retrieval before answering your questions.</p>
+            <div class="sample-chips">
+              <span class="chip-label">Try asking:</span>
+              <button class="chip" data-q="What is the Enterprise AI governance policy?">AI Governance Policy</button>
+              <button class="chip" data-q="How are API keys managed in production?">API Key Security</button>
+              <button class="chip" data-q="What is the maximum allowed context window?">Context Window</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <div class="chat-input-bar">
+        <form id="chat-form" class="input-form">
+          <input
+            type="text"
+            id="query-input"
+            placeholder="Ask a question grounded in the indexed knowledge base..."
+            autocomplete="off"
+            required
+          />
+          <button type="submit" id="send-button" class="btn primary">
+            <span>Send</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- Ingestion Modal -->
+  <div id="ingest-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Document to Knowledge Base</h3>
+        <button id="modal-close" class="btn-close">&times;</button>
+      </div>
+      <form id="ingest-form">
+        <div class="form-group">
+          <label for="doc-title">Document Title</label>
+          <input type="text" id="doc-title" placeholder="e.g. System Architecture Guide" required>
+        </div>
+        <div class="form-group">
+          <label for="doc-content">Document Content (Text or Markdown)</label>
+          <textarea id="doc-content" rows="9" placeholder="Paste knowledge base content here..." required></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="btn-cancel-ingest" class="btn secondary">Cancel</button>
+          <button type="submit" class="btn primary">Chunk & Index Document</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
